@@ -1,0 +1,28 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="0dp"
+    android:paddingRight="0dp"
+    android:paddingTop="0dp"
+    android:paddingBottom="0dp"
+    tools:context="${packageName}.${activityClass}">
+
+    <ListView
+            android:layout_width="wrap_content"
+            android:layout_height="360dp"
+            android:id="@android:id/list"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentLeft="true"/>
+    <Button
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:text="Add a project"
+            android:id="@+id/button"
+            android:textSize="34dp"
+            android:textColor="#00af55" android:layout_alignParentBottom="true" android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true" android:layout_below="@android:id/list"/>
+
+</RelativeLayout>
