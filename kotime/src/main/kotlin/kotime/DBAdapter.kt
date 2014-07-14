@@ -41,7 +41,7 @@ public class DBAdapter(ctx: Context) {
     //---insert a title into the database---
     public fun insert(project: String, status: String, timespent: Long, lastactivated: Long): Long {
         val initialValues = ContentValues()
-        initialValues.put(KEY_PROJECT, project)
+        initialValues.put(KEY_PROJECT, StringEscapeUtils.escapeJava(project))
         initialValues.put(KEY_STATUS, status)
         initialValues.put(KEY_TIMESPENT, timespent)
         initialValues.put(KEY_LASTACTIVATED, lastactivated)

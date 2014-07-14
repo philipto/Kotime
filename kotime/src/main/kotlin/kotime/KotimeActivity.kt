@@ -17,6 +17,7 @@ import android.view.MotionEvent
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
+import org.apache.commons.lang3.StringEscapeUtils
 
 //import android.view.GestureDetector
 
@@ -56,7 +57,7 @@ public class KotimeActivity() : ListActivity() {
             c!!.moveToFirst()
             if (!c!!.isAfterLast()) {
                 do {
-                    val project: String? = c!!.getString(1)
+                    val project: String? = StringEscapeUtils.unescapeJava(c!!.getString(1))
                     val status: String? = c!!.getString(2)
                     val secondsSpent = c!!.getLong(3)
                     val lastactivated = c!!.getLong(4)
@@ -68,7 +69,8 @@ public class KotimeActivity() : ListActivity() {
                             Toast.makeText(ctx, "Status is null", 10)
                         }
                     } else {
-                        newitem = Item(project, status, secondsSpent, lastactivated)
+                        newitem = Item(project, status,
+                                secondsSpent, lastactivated)
                         list.add(newitem)
                     }
 
