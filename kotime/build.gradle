@@ -1,0 +1,54 @@
+buildscript {
+    ext.kotlin_version = '0.7.895'
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.9.+'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+apply plugin: 'android'
+apply plugin: 'kotlin-android'
+apply from: 'signing.gradle'
+
+repositories {
+    mavenCentral()
+}
+
+
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion "19.0.3"
+
+    defaultConfig {
+        minSdkVersion 9
+        targetSdkVersion 19
+        versionCode 2
+        versionName "1.1"
+    }
+    buildTypes {
+        release {
+            runProguard false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            zipAlign true
+        }
+    }
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+    productFlavors {
+        kotime {
+            signingConfig signingConfigs.kotime
+        }
+    }
+
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.android.support:appcompat-v7:19.+'
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+}
