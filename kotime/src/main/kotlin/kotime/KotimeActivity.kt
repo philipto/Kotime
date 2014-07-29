@@ -19,48 +19,35 @@ import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import org.apache.commons.lang3.StringEscapeUtils
 
-//import android.view.GestureDetector
 
-/**
- * Created by filip on 03.05.2014.
- */
+class Item (val project: String, var status: String, var secondsSpent: Long, var lastactivated: Long)
 
-public open class Item (var project: String, var status: String, var secondsSpent: Long, var lastactivated: Long)
+class KotimeActivity() : ListActivity() {
 
+    private var dh: DBAdapter by Delegates.notNull()
+    private var notes: Adapter by Delegates.notNull()
+    private val list = ArrayList<Item>()
+    private var ctx: Context by Delegates.notNull()
 
+    private var position = 0
 
-public class KotimeActivity() : ListActivity() {
-
-    public var dh: DBAdapter by Delegates.notNull()
-    var notes: Adapter by Delegates.notNull()
-    public var list: ArrayList<Item> = ArrayList<Item>()
-    public var ctx: Context by Delegates.notNull()
-    var c: Cursor? = null
-    public var position: Int = 0
-
-    fun onCreate(savedInstanceState: Bundle) {
-
-        var result: String
-        var newitem: Item
+    override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
-
 
         ctx = this
 
         dh = DBAdapter(this)
         dh.open()
         // GET ROWS
-        c = dh.getAll()
+        val c = dh.getAll()
 
         if (c != null ) {
-            c!!.moveToFirst()
-            if (!c!!.isAfterLast()) {
+            c.moveToFirst()
+            if (!c.isAfterLast()) {
                 do {
-                    val project: String? = StringEscapeUtils.unescapeJava(c!!.getString(1))
-                    val status: String? = c!!.getString(2)
-                    val secondsSpent = c!!.getLong(3)
-                    val lastactivated = c!!.getLong(4)
+                    val project = StringEscapeUtils.unescapeJava(c.getString(1))
+                    val status = c.getString(2)
                     if (project == null || status == null) {
                         if (project == null) {
                             Toast.makeText(ctx, "Project is null", 10)
@@ -69,12 +56,12 @@ public class KotimeActivity() : ListActivity() {
                             Toast.makeText(ctx, "Status is null", 10)
                         }
                     } else {
-                        newitem = Item(project, status,
-                                secondsSpent, lastactivated)
-                        list.add(newitem)
+                        val secondsSpent = c.getLong(3)
+                        val lastActivated = c.getLong(4)
+                        list.add(Item(project, status, secondsSpent, lastActivated))
                     }
 
-                } while (c!!.moveToNext())
+                } while (c.moveToNext())
             }
         }
         setContentView(R.layout.activity_kotime)
@@ -83,16 +70,17 @@ public class KotimeActivity() : ListActivity() {
         val gestureDetector = GestureDetector(MyGestureDetector())
         getListView()?.setOnTouchListener() {
             v, aEvent ->
-             gestureDetector.onTouchEvent(aEvent)
+            gestureDetector.onTouchEvent(aEvent)
         }
-        //
 
         val addButton = findViewById(R.id.button) as Button
-        // binding add project dialog to the button
+
+        // binding adds project dialog to the button
+
         addButton.setOnClickListener() {
             // this is a listener for the button
-            var alert = AlertDialog.Builder(this)
-            var input = EditText(this)
+            val alert = AlertDialog.Builder(this)
+            val input = EditText(this)
 
             // Builder
 
@@ -105,10 +93,10 @@ public class KotimeActivity() : ListActivity() {
 
                 setPositiveButton("ОК") {
                     dialog, whichButton ->
-                    result = input.getText().toString()
+                    val result = input.getText().toString()
+                    // next row: one can use named parameters to increase readability or to change default parameters
                     dh.insert(result, "inactive", timespent = 0, lastactivated = 0)
-                    newitem = Item(result, "inactive", 0, 0)
-                    list.add(newitem)
+                    list.add(Item(result, "inactive", 0, 0))
                     notes.notifyDataSetChanged()
                 }
                 setNegativeButton("Отмена") { dialog, whichButton -> }
@@ -120,41 +108,31 @@ public class KotimeActivity() : ListActivity() {
             val dialog = alert.create()
             dialog.setOnShowListener {
                 dial ->
-                val imm : InputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT)
             }
 
             dialog.show()
-
         }
         notes = Adapter(this, list)
         setListAdapter(notes)
-
     }
 
-
-    fun onListItemClick(l: ListView, v: View, position: Int, id: Long) {
+    override fun onListItemClick(l: ListView?, v: View?, position: Int, id: Long) {
         val item = (getListAdapter()?.getItem(position) as Item)
-        var project = item.project
-        var status = item.status
-        var secondsSpent = item.secondsSpent
-        var lastActivated = item.lastactivated
+        val project = item.project
 
-        when (status) {
+        when (item.status) {
             "active" -> {
-
                 item.status = "inactive"
-                val spentThisTime = System.currentTimeMillis() - lastActivated
-                item.secondsSpent = secondsSpent + spentThisTime
+                val spentThisTime = System.currentTimeMillis() - item.lastactivated
+                item.secondsSpent = item.secondsSpent + spentThisTime
                 list.set(id.toInt(), item)
-
                 dh.updateSpentTimeByProject(project, item.status, item.secondsSpent)
-//            Toast.makeText(this, project + " selected. Now " + (secondsSpent + spentThisTime)/1000.0, Toast.LENGTH_LONG).show();
             }
             "inactive" -> {
                 item.status = "active"
-                lastActivated = System.currentTimeMillis()
-                item.lastactivated = lastActivated
+                item.lastactivated = System.currentTimeMillis()
                 list.set(id.toInt(), item)
                 dh.updateActivatedByProject(project, item.status, item.lastactivated)
             }
@@ -163,21 +141,22 @@ public class KotimeActivity() : ListActivity() {
     }
 
     class object {
-        private val SWIPE_MIN_DISTANCE: Int = 150
-        private val SWIPE_MAX_OFF_PATH: Int = 100
-        private val SWIPE_THRESHOLD_VELOCITY: Int = 100
+        private val SWIPE_MIN_DISTANCE = 150
+        private val SWIPE_MAX_OFF_PATH = 100
+        private val SWIPE_THRESHOLD_VELOCITY = 100
     }
 
     inner class MyGestureDetector() : SimpleOnGestureListener() {
         private var mLastOnDownEvent: MotionEvent? = null
 
-        public override fun onDown(e: MotionEvent): Boolean {
+        override fun onDown(e: MotionEvent): Boolean {
             //Android 4.0 bug means e1 in onFling may be NULL due to onLongPress eating it.
             mLastOnDownEvent = e
             return super.onDown(e)
         }
 
-        public fun onFling(e1: MotionEvent, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+        override fun onFling(e1: MotionEvent?, e2: MotionEvent?, velocityX: Float, velocityY: Float): Boolean {
+            if ( e1 == null || e2 == null) return false
             val dX = e2.getX() - e1.getX()
             val dY = e1.getY() - e2.getY()
             val position = getListView()!!.pointToPosition(Math.round(e1.getX()), Math.round(e1.getY()))
@@ -185,13 +164,13 @@ public class KotimeActivity() : ListActivity() {
             if (Math.abs(dY) < SWIPE_MAX_OFF_PATH && Math.abs(velocityX) >= SWIPE_THRESHOLD_VELOCITY && Math.abs(dX) >= SWIPE_MIN_DISTANCE) {
                 if (dX > 0) {
                     //Swipe Right
-                    val projectToDelete = list.get(position).project
+                    val projectToDelete = list[position].project
 
-                    var alert = AlertDialog.Builder(ctx)
+                    val alert = AlertDialog.Builder(ctx)
                     with (alert) {
                         setTitle("Удаление проекта")
-                        setMessage("Удаляем " + projectToDelete + "?")
-
+                        setMessage("Удаляем $projectToDelete?")
+                        // string template
                         setPositiveButton("ОК") {
                             dialog, whichButton ->
                             dh.deleteByProject(projectToDelete)
@@ -203,15 +182,15 @@ public class KotimeActivity() : ListActivity() {
                         show()
                     }
                 } else {
-// Swipe Left
+                    // Swipe Left
                 }
                 return true
             } else
                 if (Math.abs(dX) < SWIPE_MAX_OFF_PATH && Math.abs(velocityY) >= SWIPE_THRESHOLD_VELOCITY && Math.abs(dY) >= SWIPE_MIN_DISTANCE) {
                     if (dY > 0) {
-// Swipe UP
-                   } else {
-// Swipe DOWN
+                        // Swipe UP
+                    } else {
+                        // Swipe DOWN
                     }
                     return true
                 }

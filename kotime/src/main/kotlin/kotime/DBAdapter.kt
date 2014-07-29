@@ -11,20 +11,19 @@ import org.apache.commons.lang3.StringEscapeUtils
 import kotlin.properties.Delegates
 import android.util.Log
 
-public class DBAdapter(ctx: Context) {
+public class DBAdapter(val context: Context) {
     public val KEY_ROWID: String = "_id"
     public val KEY_PROJECT: String = "project"
     public val KEY_STATUS: String = "status"
     public val KEY_TIMESPENT: String = "timespent"
     public val KEY_LASTACTIVATED: String = "lastactivated"
 
-    private val context: Context
-    private var DBHelper: DatabaseHelper = DatabaseHelper(ctx)
+    private val DBHelper = DatabaseHelper(context)
     private var db: SQLiteDatabase by Delegates.notNull()
 
     //---opens the database---
     public fun open(): DBAdapter {
-        db = DBHelper.getWritableDatabase() as SQLiteDatabase
+        db = DBHelper.getWritableDatabase()!!
         return this
     }
 
@@ -66,16 +65,6 @@ public class DBAdapter(ctx: Context) {
         return result
     }
 
-    //---retrieves a particular row---
-//    public fun getrow(rowId: Long): Cursor? {
-//        val mCursor = db.query(true, DATABASE_TABLE, array<String>(KEY_ROWID, KEY_PROJECT, KEY_STATUS, KEY_TIMESPENT, KEY_LASTACTIVATED), KEY_ROWID + "=" + rowId, null, null, null, null, null)
-//        if (mCursor != null) {
-//            mCursor.moveToFirst()
-//        }
-//        return mCursor
-//    }
-
-
     public fun updateSpentTimeByProject(project: String, status: String, timespent: Long) {
         val args = ContentValues()
         args.put(KEY_STATUS, status)
@@ -102,11 +91,6 @@ public class DBAdapter(ctx: Context) {
 
     }
 
-    {
-        this.context = ctx
-        DBHelper = DatabaseHelper(context)
-    }
-
     class object {
         private val TAG: String = "DBAdapter"
         private val DATABASE_NAME: String = "timecard"
@@ -121,10 +105,7 @@ public class DBAdapter(ctx: Context) {
             }
 
             override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-
-                Log.w(DBAdapter.TAG, "Upgrading database from version " + oldVersion + " to " + newVersion + ", which will destroy all old data")
-                db.execSQL("DROP TABLE IF EXISTS " + DBAdapter.DATABASE_TABLE)
-                onCreate(db)
+                Log.w(DBAdapter.TAG, "Upgrading does not affect the database")
             }
         }
     }
